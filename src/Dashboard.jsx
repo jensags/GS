@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const Dashboard = () => {
-  const navigate = useNavigate();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { 
