@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
   const navigate = useNavigate();
-
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-gray-100">
       {/* Title */}
@@ -48,6 +48,7 @@ function LoginPage() {
               type="password"
               placeholder="Enter Password"
               className="w-full outline-none text-sm sm:text-base"
+              
             />
           </div>
         </div>
