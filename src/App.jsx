@@ -6,6 +6,8 @@ import Carpentry from "./Carpentry";
 import Janitorial from "./Janitorial";
 import Electrical from "./Electrical";
 import AirConditioning from "./AirConditioning";
+import Notifications from "./Notifications";
+import Schedules from "./Schedules";
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/carpentry" element={<Carpentry />} />
         <Route path="/electrical" element={<Electrical />} />
         <Route path="/airconditioning" element={<AirConditioning />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/schedules" element={<Schedules />} />
       </Routes>
     </Router>
   );

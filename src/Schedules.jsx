@@ -27,13 +27,6 @@ const sidebarReducer = (state, action) => {
   }
 };
 
-// Constants
-const CARD_ICONS = {
-  Maintenance: "M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z",
-  Transportation: "M18.92 6.01C18.72 5.4 18.17 5 17.54 5H6.46c-.63 0-1.18.4-1.38 1.01L3 11v7a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-7l-2.08-4.99ZM6.85 7h10.3l1.37 3.3c.11.26.18.53.18.8V12H5v-.9c0-.27.06-.54.18-.8L6.85 7ZM6 14a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm12 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z",
-  Reservation: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-};
-
 const MENU_ITEMS = [
   { 
     text: "Dashboard",
@@ -55,15 +48,13 @@ const MENU_ITEMS = [
     to: "/settings",
     icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
   },
+
   {
     text: "Logout",
     to: "/loginpage",
     icon: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
   }
 ];
-
-const DASHBOARD_CARDS = ['Maintenance', 'Transportation', 'Reservation'];
-const SCHEDULE_ITEMS = ['Team Meeting', 'Project Deadline', 'System Maintenance'];
 
 // Components
 const Icon = memo(({ path, className }) => (
@@ -136,6 +127,7 @@ const Header = memo(({
   useClickOutside(mobileMenuRef, () => {
     if (isMobileMenuOpen) onCloseMobileMenu();
   });
+  
 
   return (
     <header className="bg-black text-white p-4 flex justify-between items-center relative">
@@ -221,45 +213,81 @@ const Sidebar = memo(({
     </div>
   </aside>
 ));
-
-
-const ScheduleSidebar = memo(() => (
-  <aside className="hidden lg:block lg:w-1/4 bg-white/90 p-4 border-l backdrop-blur-sm">
-    <h2 className="text-xl font-bold mb-4 text-gray-800">Reminders</h2>
-    <div className="space-y-3">
-      {SCHEDULE_ITEMS.map((event) => (
-        <div 
-          key={event} 
-          className="p-3 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative"
-        >
-          <div className="absolute left-3 top-3.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-          <p className="text-sm text-gray-700 pl-4 font-medium">{event}</p>
-          <span className="text-xs text-gray-400 pl-4">Today 3:00 PM</span>
-        </div>
-      ))}
-    </div>
-  </aside>
-));
-
-const DashboardContent = memo(({ onCardClick }) => (
-  <main className="flex-1 p-6 overflow-hidden bg-white/95 backdrop-blur-sm">
-    <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 border-b mb-4 md:mb-6 pb-3 md:pb-4">
-        Dashboard
+const DashboardContent = memo(() => (
+    <main className="flex-1 p-4 md:p-6 lg:p-8 bg-white/95 backdrop-blur-sm overflow-y-auto">
+      <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4 md:mb-6 pb-3 md:pb-4 border-b border-gray-200">
+        Schedules
       </h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {DASHBOARD_CARDS.map((item) => (
-        <DashboardCard
-          key={item}
-          item={item}
-          onClick={() => onCardClick(item)}
-        />
-      ))}
-    </div>
-  </main>
-));
-
+  
+      <div className="bg-white rounded-lg shadow-sm md:shadow-lg border border-gray-200">
+        {/* Calendar Container */}
+        <div className="p-2 sm:p-4 overflow-x-auto">
+          <div className="min-w-[600px]"> {/* Minimum width for mobile scrolling */}
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b-2 border-gray-200">
+                  {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((day) => (
+                    <th 
+                      key={day} 
+                      className="text-xs sm:text-sm md:text-base p-2 md:p-3 text-center font-semibold text-gray-700 border-r border-gray-100 last:border-r-0"
+                    >
+                      {day}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              
+              <tbody>
+                {[...Array(5)].map((_, rowIndex) => (
+                  <tr 
+                    key={rowIndex} 
+                    className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  >
+                    {[...Array(7)].map((_, colIndex) => {
+                      const dateNumber = rowIndex * 7 + colIndex + 1;
+                      const isToday = dateNumber === new Date().getDate();
+                      
+                      return (
+                        <td 
+                          key={colIndex}
+                          className={`
+                            text-xs sm:text-sm p-2 md:p-3 text-center 
+                            ${isToday ? 
+                              "bg-blue-50 font-semibold text-blue-600 border-2 border-blue-200" : 
+                              "text-gray-600"}
+                            border-r border-gray-100 last:border-r-0
+                            hover:bg-gray-100 transition-colors cursor-pointer
+                          `}
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <span>{dateNumber}</span>
+                            {/* Event Indicator */}
+                            {dateNumber % 3 === 0 && (
+                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            )}
+                          </div>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+  
+      {/* Mobile Legend */}
+      <div className="lg:hidden mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+          <span className="text-gray-600">Scheduled Event</span>
+        </div>
+      </div>
+    </main>
+  ));
 // Main Component
-const Dashboard = () => {
+const Schedules = () => {
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(sidebarReducer, {
     isSidebarCollapsed: true,
@@ -285,11 +313,9 @@ const Dashboard = () => {
         />
         
         <DashboardContent onCardClick={handleNavigation} />
-        
-        <ScheduleSidebar />
       </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default Schedules;
