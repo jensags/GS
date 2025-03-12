@@ -18,11 +18,12 @@ return new class extends Migration {
             $table->string('status')->default('Pending');
             $table->date('date_received')->nullable();
             $table->time('time_received')->nullable();
-            $table->string('priority_number')->nullable();
+            $table->integer('priority_number')->nullable();
             $table->text('remarks')->nullable();
-            $table->string('verified_by')->nullable();
-            $table->string('approved_by_1')->nullable();
-            $table->string('approved_by_2')->nullable();
+            $table->foreignId('verified_by')->nullable()->constrained('users');
+            $table->foreignId('approved_by_1')->nullable()->constrained('users');
+            $table->foreignId('approved_by_2')->nullable()->constrained('users');
+            $table->foreignId('maintenance_type_id')->constrained('maintenance_types')->onDelete('cascade');
             $table->timestamps();
         });
     }

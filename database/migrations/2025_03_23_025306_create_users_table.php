@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('position');
             $table->string('office');
-            $table->string('contact_number')->unique();
+            $table->string('contact_number');
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->string('email')->unique();
+            $table->string('username')->unique();
             $table->string('password');
-            $table->string('role')->default('requester'); // requester or approver
-            $table->rememberToken();
+            $table->enum('account_status', ['Pending', 'Disapproved', 'Approved'])->default('Pending');
             $table->timestamps();
         });
 

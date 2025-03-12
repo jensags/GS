@@ -1,31 +1,20 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MaintenanceRequest extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        'date_requested',
-        'details',
-        'requesting_personnel',
-        'position',
-        'requesting_office',
-        'contact_number',
-        'status',
-        'date_received',
-        'time_received',
-        'priority_number',
-        'remarks',
-        'verified_by',
-        'approved_by_1',
-        'approved_by_2',
+        'date_requested', 'details', 'requesting_personnel',
+        'position', 'requesting_office', 'contact_number',
+        'status', 'date_received', 'time_received',
+        'priority_number', 'remarks', 'verified_by',
+        'approved_by_1', 'approved_by_2', 'maintenance_type_id'
     ];
-
+}
 
 
     // // Relationship with User (Requester)
@@ -50,4 +39,4 @@ class MaintenanceRequest extends Model
     // {
     //     return $this->belongsTo(User::class, 'approved_by_2');
     // }
-}
+
