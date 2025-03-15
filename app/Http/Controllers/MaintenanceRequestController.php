@@ -17,20 +17,17 @@ class MaintenanceRequestController extends Controller
     // Store a new maintenance request
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'request_id' => 'required|exists:requests,id',
-                'date_received' => 'required|date',
-                'time_received' => 'required',
-                'priority_number' => 'required|integer',
-                'signature' => 'required|string',
-            ]);
+        $validated = $request->validate([
+            'request_id' => 'required|exists:requests,id',
+            'maintenance_type_id' => 'required|exists:maintenance_types,id',
+            'date_received' => 'required|date',
+            'time_received' => 'required',
+            'priority_number' => 'required|integer',
+            'signature' => 'required|string',
+        ]);
 
-            $newRequest = MaintenanceRequest::create($validated);
-            return response()->json($newRequest, 201);
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
+        $newRequest = MaintenanceRequest::create($validated);
+        return response()->json($newRequest, 201);
     }
 
     // Show a single maintenance request
