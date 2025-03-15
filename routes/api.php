@@ -6,6 +6,11 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\MaintenanceRequestController;
 use App\Http\Controllers\TransportationRequestController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\MaintenanceTypeController;
+
+
+
+Route::get('/maintenance-types', [MaintenanceTypeController::class, 'index']);
 
 // Public Routes (Authentication)
 Route::post('/register', [UserController::class, 'register']);
