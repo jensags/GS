@@ -1,0 +1,29 @@
+name: Merge Contributor Branch to JS
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  merge-branch:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout your repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+
+      - name: Show Git Remotes
+        run: git remote -v 
+
+      - name: Add Contributor's Remote
+        run: git remote add xzuan-bit https://github.com/xzuan-bit/GSO.git  
+
+      - name: Fetch Contributor's Branch
+        run: git fetch xzuan-bit Test-branch  
+
+      - name: Merge Test-branch into JS
+        run: |
+          git checkout JS 
+          git merge xzuan-bit/Test-branch  
+          git push origin JS  
