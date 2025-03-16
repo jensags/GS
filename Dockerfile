@@ -32,13 +32,17 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . .
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . .
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
 # Generate Laravel app key
 RUN php artisan key:generate
 
+# Clear and cache configurations
+RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache
+
+# Run migrations and start PHP-FPM
 CMD php artisan migrate --force && php-fpm
