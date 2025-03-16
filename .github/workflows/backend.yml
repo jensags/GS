@@ -1,4 +1,4 @@
-name: Deploy Laravel Backend to Render
+name: Deploy Laravel Backend to Railway
 
 on:
   push:
@@ -38,8 +38,8 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: php artisan migrate --force
 
-      - name: Deploy to Render
+      - name: Deploy to Railway
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          curl -X POST https://api.render.com/deploy/srv-<YOUR_SERVICE_ID>?key=$RENDER_API_KEY
+          railway up
