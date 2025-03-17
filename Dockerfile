@@ -18,10 +18,12 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     libmcrypt-dev \
-    default-mysql-client
+    default-mysql-client && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -29,20 +31,23 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
+# Copy environment file first to ensure it's available for Artisan commands
+COPY .env .
+
 # Copy existing application directory contents
 COPY . .
 
 # Set proper permissions
-RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
+RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate Laravel app key
-RUN php artisan key:generate
-
 # Clear and cache configurations
 RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache
+
+# Generate Laravel app key
+RUN php artisan key:generate
 
 # Run migrations and start PHP-FPM
 CMD php artisan migrate --force && php-fpm
