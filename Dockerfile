@@ -38,7 +38,11 @@ COPY .env .
 COPY . .
 
 # Set proper permissions
+
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
+
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
@@ -48,6 +52,12 @@ RUN php artisan config:clear && php artisan cache:clear && php artisan route:cle
 
 # Generate Laravel app key
 RUN php artisan key:generate
+
+
+
+# Clear and cache configurations
+RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache
+
 
 # Run migrations and start PHP-FPM
 CMD php artisan migrate --force && php-fpm
