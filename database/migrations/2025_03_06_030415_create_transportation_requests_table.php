@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('transportation_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('request_id')->constrained('requests')->onDelete('cascade');
             $table->string('driver_name');
             $table->string('contact_number');
             $table->string('purpose');
