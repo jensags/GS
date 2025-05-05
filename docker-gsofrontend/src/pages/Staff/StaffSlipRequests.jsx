@@ -136,7 +136,7 @@ const StaffSlipRequests = () => {
       if (status === "Pending") {
         navigate(`/staffmaintenancerequestform/${id}`);
       } else {
-        navigate(`/viewmaintenancerequestform/${id}`);
+        navigate(`/staffviewmaintenancerequestform/${id}`);
       }
     },
     [navigate]
