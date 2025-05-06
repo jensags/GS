@@ -9,7 +9,7 @@ services:
       MYSQL_USER: gso_user
       MYSQL_PASSWORD: manageitgso5
     ports:
-      - "4406:3306"  # Avoid conflict with local MySQL
+      - "5506:3306"  # Avoid conflict with local MySQL
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -31,7 +31,7 @@ services:
       DB_USERNAME: gso_user
       DB_PASSWORD: manageitgso5
     ports:
-      - "8000:8000"
+      - "9000:8000"
     volumes:
       - ./docker-gsobackend:/var/www/html
     command: ["sh", "-c", "php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"]
@@ -40,14 +40,14 @@ services:
 
   frontend:
     build:
-      context: ./docker-gsofrontend/GSO Website
-      dockerfile: ../../docker-gsofrontend/frontend.dockerfile
+      context: ./docker-gsofrontend
+      dockerfile: frontend.dockerfile
     container_name: gso_frontend
     restart: always
     ports:
-      - "80:5173"
+      - "90:5173"
     volumes:
-      - ./docker-gsofrontend/GSO Website:/app
+      - ./docker-gsofrontend:/app
     working_dir: /app
     environment:
       - CHOKIDAR_USEPOLLING=true
@@ -64,7 +64,7 @@ services:
       PMA_USER: root
       PMA_PASSWORD: root
     ports:
-      - "8080:80"  # Access phpMyAdmin via localhost:8080
+      - "9090:80"  # Access phpMyAdmin via localhost:8080
     depends_on:
       - mysql
     networks:
