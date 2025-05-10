@@ -1,0 +1,2 @@
+#prevent docker compose from being pushed in github
+docker-compose.yml
