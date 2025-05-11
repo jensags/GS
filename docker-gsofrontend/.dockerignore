@@ -13,6 +13,5 @@ docker-compose.yml
 .dockerignore
 
 *.log
-.env
 .env.local
 .env.*.local
