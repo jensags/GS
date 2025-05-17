@@ -23,6 +23,7 @@ import StaffDashboard from "./pages/Staff/StaffDashboard.jsx";
 import StaffRequests from "./pages/Staff/StaffRequests.jsx";
 import StaffSlipRequests from "./pages/Staff/StaffSlipRequests.jsx";
 import UserRequests from "./pages/Staff/UserRequests.jsx";
+import StaffViewMaintenanceRequestForm from "./pages/Staff/StaffViewMaintenanceRequestForm.jsx";
 import AdminUserRequests from "./pages/Admin/AdminUserRequests.jsx";
 import AdminUserRequestsForm from "./pages/Admin/AdminUserRequestsForm.jsx";
 import StaffMaintenanceRequestForm from "./pages/Staff/StaffMaintenanceRequestForm.jsx";
@@ -100,6 +101,7 @@ function App() {
         <Route path="/staffcarpentry" element={<StaffCarpentry token={token} />} /> 
         <Route path="/staffairconditioning" element={<StaffAirconditioning token={token} />} />
         <Route path="/report" element={<Report token={token} />} />
+        <Route path="/staffviewmaintenancerequestform/:id" element={<StaffViewMaintenanceRequestForm token={token} />} />
 
         {/* Head Routes */}
         <Route path="/headdashboard" element={<HeadDashboard token={token} />} />
