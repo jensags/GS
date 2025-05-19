@@ -78,7 +78,7 @@ function LoginPage() {
             case "4":
               navigate("/dashboard");
               break;
-            case "5": // Add this case for campus director
+            case "10": // Add this case for campus director
               navigate("/campusdirectordashboard");
               break;
             default:
@@ -186,27 +186,6 @@ function LoginPage() {
               </button>
             </div>
           </div>
-
-          {/* Options Row */}
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center">
-              <input 
-                type="checkbox" 
-                id="rememberMe" 
-                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600">
-                Remember me
-              </label>
-            </div>
-            <div>
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                Forgot password?
-              </a>
-            </div>
-          </div>
           
           {/* Login Button */}
           <button
@@ -234,15 +213,6 @@ function LoginPage() {
           <Link to="/signuppage" className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">
             Create account
           </Link>
-        </div>
-
-        {/* Additional Links */}
-        <div className="mt-6 flex justify-center space-x-4 text-xs text-gray-500">
-          <a href="#" className="hover:text-gray-700 hover:underline">Reset Password</a>
-          <span>•</span>
-          <a href="#" className="hover:text-gray-700 hover:underline">Retrieve ID</a>
-          <span>•</span>
-          <a href="#" className="hover:text-gray-700 hover:underline">Help</a>
         </div>
       </div>
 

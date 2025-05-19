@@ -119,7 +119,7 @@ function App() {
         {/* Campus Director Routes */}
         <Route path="/campusdirectordashboard" element={<CampusDirectorDashboard token={token} />} />
         <Route path="/campusdirectorrequests" element={<CampusDirectorRequests token={token} />} />
-        <Route path="/campusdirectormaintenancerequestform" element={<CampusDirectorMaintenanceRequestForm token={token} />} />
+        <Route path="/campusdirectormaintenancerequestform/:id" element={<CampusDirectorMaintenanceRequestForm token={token} />} />
       </Routes>
     </Router>
   );

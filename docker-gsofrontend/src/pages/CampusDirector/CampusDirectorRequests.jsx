@@ -1,6 +1,6 @@
 import { useState, useReducer, useEffect, useCallback } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
+import { CampusDirectorSidebar } from "../../components/CampusDirectorSidebar";
 import Icon from "../../components/Icon";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -301,11 +301,9 @@ const CampusDirectorRequests = () => {
       </header>
 
       <div className="flex flex-1 overflow-auto">
-        <Sidebar
+        <CampusDirectorSidebar
           isSidebarCollapsed={state.isSidebarCollapsed}
           onToggleSidebar={() => dispatch({ type: "TOGGLE_SIDEBAR" })}
-          menuItems={MENU_ITEMS}
-          title="CAMPUS DIRECTOR"
         />
         <main className="flex-1 p-4 md:p-6 lg:p-8 bg-white/95 backdrop-blur-sm overflow-y-auto">
           <h2 className="text-3xl font-extrabold text-gray-900 border-b mb-4 pb-3">

@@ -1,6 +1,7 @@
 import { useState, useReducer, useEffect, useCallback, memo, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar';
+// Replace Sidebar import with CampusDirectorSidebar
+import { CampusDirectorSidebar } from '../../components/CampusDirectorSidebar';
 import Icon from '../../components/Icon';
 import ScheduleSidebar from '../../components/ScheduleSidebar';
 
@@ -157,11 +158,10 @@ const CampusDirectorDashboard = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
+        {/* Use CampusDirectorSidebar instead of Sidebar */}
+        <CampusDirectorSidebar
           isSidebarCollapsed={state.isSidebarCollapsed}
           onToggleSidebar={() => dispatch({ type: "TOGGLE_SIDEBAR" })}
-          menuItems={MENU_ITEMS}
-          title="Campus Director"
         />
 
         <DashboardContent onCardClick={handleNavigation} />
