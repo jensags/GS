@@ -4,14 +4,14 @@ services:
     container_name: gso_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: aftermvp
+      MYSQL_ROOT_PASSWORD: rootpassw0rd
+      MYSQL_DATABASE: manageit_db
       MYSQL_USER: gso_user
-      MYSQL_PASSWORD: manageitgso5
+      MYSQL_PASSWORD: manageitgso5Test
     ports:
-      - "4406:3306"  # Avoid conflict with local MySQL
+      - "5506:3306"  # Avoid conflict with local MySQL
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./docker-data/mysql_data:/var/lib/mysql
     networks:
       - gso_network
 
@@ -27,31 +27,27 @@ services:
       DB_CONNECTION: mysql
       DB_HOST: gso_mysql
       DB_PORT: 3306
-      DB_DATABASE: aftermvp
+      DB_DATABASE: manageit_db
       DB_USERNAME: gso_user
-      DB_PASSWORD: manageitgso5
+      DB_PASSWORD: manageitgso5Test
     ports:
-      - "8000:8000"
+      - "9000:8000"
     volumes:
-      - ./docker-gsobackend:/var/www/html
-    command: ["sh", "-c", "php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"]
+      - ./docker-data/backend_pictures:/var/www/html/storage/app/public
+    command: php artisan serve --host=0.0.0.0 --port=8000
     networks:
       - gso_network
 
   frontend:
     build:
-      context: ./docker-gsofrontend/GSO Website
-      dockerfile: ../../docker-gsofrontend/frontend.dockerfile
+      context: ./docker-gsofrontend
+      dockerfile: frontend.dockerfile
     container_name: gso_frontend
     restart: always
     ports:
-      - "80:5173"
-    volumes:
-      - ./docker-gsofrontend/GSO Website:/app
-    working_dir: /app
+      - "90:80"
     environment:
-      - CHOKIDAR_USEPOLLING=true
-    command: ["sh", "-c", "npm install && npm run dev"]
+      - VITE_API_BASE_URL=https://manageit-test-api.coeofjrmsu.com/api
     networks:
       - gso_network
 
@@ -62,18 +58,14 @@ services:
     environment:
       PMA_HOST: gso_mysql
       PMA_USER: root
-      PMA_PASSWORD: root
+      PMA_PASSWORD: rootpassw0rd
     ports:
-      - "8080:80"  # Access phpMyAdmin via localhost:8080
+      - "9090:80"  # Access phpMyAdmin via localhost:8080
     depends_on:
       - mysql
     networks:
       - gso_network
 
-volumes:
-  mysql_data:
-
 networks:
   gso_network:
-    driver: bridge
 
