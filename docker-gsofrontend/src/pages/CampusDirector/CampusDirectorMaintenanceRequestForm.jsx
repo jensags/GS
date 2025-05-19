@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const HeadMaintenanceRequestForm = () => {
+const CampusDirectorMaintenanceRequestForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const HEAD1_ID = 8;
-  const HEAD2_ID = 9;
-
-  const roleMap = {
-    1: "Admin",
-    2: "Head",
-    3: "Staff",
-    4: "User",
-  };
+  const DIRECTOR_ID = 10;
 
   const [currentUser, setCurrentUser] = useState({
     id: "",
@@ -36,8 +28,7 @@ const HeadMaintenanceRequestForm = () => {
   const [remarks, setRemarks] = useState("");
   const [approvedByName, setApprovedByName] = useState("");
   const [approvedById, setApprovedById] = useState("");
-  const [head1Input, setHead1Input] = useState("");
-  const [head2Input, setHead2Input] = useState("");
+  const [directorInput, setDirectorInput] = useState("");
   const [approvedBy1, setApprovedBy1] = useState(null);
   const [userNames, setUserNames] = useState({});
 
@@ -142,7 +133,7 @@ const HeadMaintenanceRequestForm = () => {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/headpov/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/directorpov/${id}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -156,14 +147,11 @@ const HeadMaintenanceRequestForm = () => {
         const responseData = data.data || data;
         setRequestDetails(responseData);
 
-        // Debug
-        console.log("requestDetails", responseData);
-
         setDateReceived((prev) => prev || responseData.date_received || new Date().toISOString().split("T")[0]);
         setTimeReceived((prev) => prev || responseData.time_received || new Date().toTimeString().slice(0, 5));
         setPriorityNumber(responseData.priority_number || "");
         setRemarks(responseData.remarks || "");
-        setApprovedBy1(responseData.approved_by_1 || null); // Set approved_by_1 directly
+        setApprovedBy1(responseData.approved_by_1 || null);
 
         const userInfo = await fetchUserInfo(token);
         setApprovedByName(userInfo.full_name);
@@ -229,10 +217,6 @@ const HeadMaintenanceRequestForm = () => {
         });
         const statusesData = await statusesRes.json();
         setStatuses(Array.isArray(statusesData.data) ? statusesData.data : statusesData);
-
-        // Debug
-        console.log("maintenanceTypes", maintenanceTypesData);
-        console.log("statuses", statusesData);
       } catch (err) {
         // Optionally handle error
       }
@@ -308,7 +292,7 @@ const HeadMaintenanceRequestForm = () => {
       return;
     }
 
-    if (approvedById === HEAD2_ID && !approvedBy1) {
+    if (!approvedBy1) {
       setError("You cannot approve this request until Head 1 has approved it.");
       return;
     }
@@ -322,7 +306,7 @@ const HeadMaintenanceRequestForm = () => {
       const endpoint =
         action === "deny"
           ? `${API_BASE_URL}/maintenance-requests/${id}/disapprove`
-          : `${API_BASE_URL}/maintenance-requests/${id}/approve-head`;
+          : `${API_BASE_URL}/maintenance-requests/${id}/approve-campusdirector`;
 
       const payload = {
         id,
@@ -334,10 +318,8 @@ const HeadMaintenanceRequestForm = () => {
         ...(action === "deny" && { status: "denied" }),
       };
 
-      if (approvedById === HEAD1_ID) {
-        payload.verified_by_head = approvedById;
-      } else if (approvedById === HEAD2_ID && requestDetails.verified_by_head) {
-        payload.verified_by_supervisor = approvedById;
+      if (approvedById === DIRECTOR_ID && approvedBy1) {
+        payload.verified_by_director = approvedById;
       }
 
       const response = await fetch(endpoint, {
@@ -353,7 +335,7 @@ const HeadMaintenanceRequestForm = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Request submission failed");
 
-      navigate("/headmaintenance");
+      navigate("/campusdirectorrequests");
     } catch (err) {
       setError(err.message || "An error occurred during request submission");
     } finally {
@@ -361,17 +343,10 @@ const HeadMaintenanceRequestForm = () => {
     }
   };
 
-  const isHead1Verified = Boolean(requestDetails.verified_by_head);
-  const isHead2Verified = Boolean(requestDetails.verified_by_supervisor);
+  const isDirectorVerified = Boolean(requestDetails.verified_by_director);
+  const alreadyApproved = approvedById === DIRECTOR_ID && isDirectorVerified;
 
-  const isFullyApproved = isHead1Verified && isHead2Verified;
-  const alreadyApproved =
-    (approvedById === HEAD1_ID && isHead1Verified) ||
-    (approvedById === HEAD2_ID && isHead2Verified);
-
-  const buttonText = isFullyApproved
-    ? "Already Fully Approved"
-    : alreadyApproved
+  const buttonText = alreadyApproved
     ? "Already Approved"
     : "Approve";
 
@@ -383,7 +358,7 @@ const HeadMaintenanceRequestForm = () => {
         </span>
         <div className="hidden md:block text-right text-white text-sm">
           <div className="font-semibold capitalize">
-            <div className="hidden md:block text-xl font-bold">Head</div>
+            <div className="hidden md:block text-xl font-bold">Campus Director</div>
           </div>
         </div>
       </header>
@@ -392,7 +367,7 @@ const HeadMaintenanceRequestForm = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8">
           <div className="bg-white p-6 md:p-8 lg:p-10 shadow-lg rounded-lg w-full max-w-md md:max-w-xl lg:max-w-2xl">
             <h2 className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6 text-gray-800">
-              User Request Slip (Head Approval) 
+              User Request Slip (Campus Director Approval) 
             </h2>      
 
             {error && <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4 text-sm">{error}</div>}
@@ -547,56 +522,40 @@ const HeadMaintenanceRequestForm = () => {
 
             {!isLoading && (
               <form className="space-y-4 md:space-y-6 mt-6" onSubmit={(e) => handleDecision(e, "approve")}>
-                {approvedById === HEAD1_ID && (
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-1">Approved by Head</label>
-                    <input
-                      type="text"
-                      value={head1Input}
-                      onChange={(e) => setHead1Input(e.target.value)}
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                      placeholder="Optional remarks or name"
-                    />
-                  </div>
-                )}
-
-                {approvedById === HEAD2_ID && (
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-1">Approved by Supervisor</label>
-                    <input
-                      type="text"
-                      value={head2Input}
-                      onChange={(e) => setHead2Input(e.target.value)}
-                      disabled={!approvedBy1}
-                      className={`w-full border border-gray-300 rounded px-3 py-2 ${!approvedBy1 ? "bg-gray-100" : ""}`}
-                      placeholder="Optional remarks or name"
-                    />
-                    {!approvedBy1 && (
-                      <p className="text-red-500 text-sm mt-1">Waiting for Head 1 approval.</p>
-                    )}
-                  </div>
-                  
-                )}
                 <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Approved by:
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
-                        value={getCurrentUserDisplayName()}
-                        disabled
-                      />
-                    </div>
+                  <label className="block font-medium text-gray-700 mb-1">Approved by Campus Director</label>
+                  <input
+                    type="text"
+                    value={directorInput}
+                    onChange={(e) => setDirectorInput(e.target.value)}
+                    disabled={!approvedBy1}
+                    className={`w-full border border-gray-300 rounded px-3 py-2 ${!approvedBy1 ? "bg-gray-100" : ""}`}
+                    placeholder="Optional remarks or name"
+                  />
+                  {!approvedBy1 && (
+                    <p className="text-red-500 text-sm mt-1">Waiting for Head 1 approval.</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Approved by:
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+                    value={getCurrentUserDisplayName()}
+                    disabled
+                  />
+                </div>
 
                 <button
                   type="submit"
                   className={`w-full text-white py-2 rounded-lg ${
-                    alreadyApproved || (approvedById === HEAD2_ID && !approvedBy1)
+                    alreadyApproved || !approvedBy1
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-green-500 hover:bg-green-600"
                   }`}
-                  disabled={alreadyApproved || (approvedById === HEAD2_ID && !approvedBy1)}
+                  disabled={alreadyApproved || !approvedBy1}
                 >
                   {buttonText}
                 </button>
@@ -617,4 +576,4 @@ const HeadMaintenanceRequestForm = () => {
   );
 };
 
-export default HeadMaintenanceRequestForm;
+export default CampusDirectorMaintenanceRequestForm;

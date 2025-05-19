@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useReducer, useRef } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
+import { Sidebar, MENU_ITEMS as SIDEBAR_MENU_ITEMS } from "../../components/Sidebar";
 import Icon from "../../components/Icon";
 
 // Reducer for sidebar state
@@ -17,19 +17,9 @@ const sidebarReducer = (state, action) => {
   }
 };
 
-const MENU_ITEMS = [
-  { text: "Profile", to: "/profile", icon: "M11.5 15H7a4 4 0 0 0-4 4v2 M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z M10 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8z"},
-  { text: "Dashboard", to: "/dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-  { text: "Notifications", to: "/notifications", icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" },
-  { text: "Schedules", to: "/schedules", icon: "M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M16 2v4 M3 10h18 M8 2v4 M17 14h-6 M13 18H7 M7 14h.01 M17 18h.01" },
-  { text: "Request Status", to: "/requeststatus", icon: "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 1 1 1-1z M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2 M12 11h4 M12 16h4 M8 11h.01 M8 16h.01" },
-  { text: "User Feedback", to: "/userfeedback", icon: "M20 11V7a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v4a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4zM8 7h8a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V7z" },
-  { text: "Settings", to: "/settings", icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" },
-  { text: "Logout", to: "/loginpage", icon: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" },
-];
-
-// Common electrical request types
+// Electrical request types
 const ELECTRICAL_REQUEST_TYPES = [
+  { value: "", label: "-- Select a request type --" },
   { value: "electrical_outlet", label: "Electrical Outlet Installation/Repair" },
   { value: "light_fixture", label: "Light Fixture Installation/Replacement" },
   { value: "circuit_breaker", label: "Circuit Breaker Issues" },
@@ -37,7 +27,7 @@ const ELECTRICAL_REQUEST_TYPES = [
   { value: "wiring", label: "Wiring Issues/Repairs" },
   { value: "appliance", label: "Appliance Electrical Problem" },
   { value: "electrical_inspection", label: "Electrical Safety Inspection" },
-  { value: "others", label: "Others (Please specify)" },
+  { value: "other", label: "Other (Please specify)" },
 ];
 
 const Electrical = () => {
@@ -64,13 +54,22 @@ const Electrical = () => {
   // Form input states
   const [formData, setFormData] = useState({
     date_requested: "",
-    request_type: "",
     details: "",
     requesting_personnel: "",
-    position: "",
+    position_id: "",
     requesting_office: "",
     contact_number: "",
+    request_type: "",
+    position: "",
   });
+
+  const [userIds, setUserIds] = useState({
+    user_id: "",
+    position_id: "",
+    requesting_office: "",
+  });
+
+  const [displayName, setDisplayName] = useState("");
 
   // UI state management
   const [status, setStatus] = useState({
@@ -78,10 +77,10 @@ const Electrical = () => {
     isFetchingUserDetails: true,
     error: "",
     success: "",
-    touched: {}, // Track which fields have been touched for validation
+    touched: {},
     isSubmitting: false,
     showConfirmation: false,
-    fieldErrors: {}, // Track specific field errors
+    fieldErrors: {},
   });
 
   const [token, setToken] = useState("");
@@ -96,11 +95,11 @@ const Electrical = () => {
         touched: { ...prev.touched, [field]: true }
       }));
     }
-    
+
     // Clear field error if value is valid
     if (status.fieldErrors[field]) {
-      if ((field === 'details' && value.length >= 10) || 
-          (field !== 'details' && value)) {
+      if ((field === 'details' && value.length >= 10) ||
+        (field !== 'details' && value)) {
         setStatus(prev => ({
           ...prev,
           fieldErrors: {
@@ -110,21 +109,39 @@ const Electrical = () => {
         }));
       }
     }
-  };
 
-  // Handle request type change
-  const handleRequestTypeChange = (e) => {
-    const value = e.target.value;
-    updateFormData('request_type', value);
-    
-    // Auto-populate details field for non-"Others" options
-    if (value !== "others") {
-      const selectedOption = ELECTRICAL_REQUEST_TYPES.find(option => option.value === value);
-      if (selectedOption) {
-        updateFormData('details', `${selectedOption.label}\n\nAdditional details: `);
+    // Special handling for request type selection
+    if (field === 'request_type' && value !== 'other') {
+      let detailText = "";
+      switch (value) {
+        case "electrical_outlet":
+          detailText = "Electrical outlet installation or repair needed.";
+          break;
+        case "light_fixture":
+          detailText = "Light fixture installation or replacement required.";
+          break;
+        case "circuit_breaker":
+          detailText = "Circuit breaker issue needs attention.";
+          break;
+        case "power_outage":
+          detailText = "Power outage or electrical fault reported.";
+          break;
+        case "wiring":
+          detailText = "Wiring issues or repairs required.";
+          break;
+        case "appliance":
+          detailText = "Electrical problem with appliance.";
+          break;
+        case "electrical_inspection":
+          detailText = "Request for electrical safety inspection.";
+          break;
+        default:
+          detailText = "";
       }
-    } else {
-      // Clear details if "Others" is selected to let user specify
+      if (detailText) {
+        updateFormData('details', detailText);
+      }
+    } else if (field === 'request_type' && value === 'other') {
       updateFormData('details', "");
     }
   };
@@ -134,7 +151,6 @@ const Electrical = () => {
       acc[key] = true;
       return acc;
     }, {});
-    
     setStatus(prev => ({
       ...prev,
       touched: allTouched
@@ -144,20 +160,16 @@ const Electrical = () => {
   // Check form validity
   const validateForm = () => {
     const fieldErrors = {};
-    
     if (!formData.date_requested) fieldErrors.date_requested = "Date is required";
     if (!formData.request_type) fieldErrors.request_type = "Please select a request type";
     if (!formData.details) fieldErrors.details = "Details are required";
     else if (formData.details.length < 10) {
       fieldErrors.details = "Please provide more detailed information (at least 10 characters)";
     }
-    
-    // Update the field errors in state
     setStatus(prev => ({
       ...prev,
       fieldErrors
     }));
-    
     return {
       isValid: Object.keys(fieldErrors).length === 0,
       fieldErrors
@@ -167,30 +179,24 @@ const Electrical = () => {
   // Authentication check and token retrieval
   useEffect(() => {
     const authToken = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-    
     if (!authToken) {
       setStatus(prev => ({
         ...prev,
         error: "Unauthorized: Please log in to continue",
         isFetchingUserDetails: false
       }));
-      
-      // Show error briefly before redirecting
       const timer = setTimeout(() => navigate("/loginpage"), 2000);
       return () => clearTimeout(timer);
     }
-    
     setToken(authToken);
   }, [navigate]);
 
   // Fetch user details
   useEffect(() => {
     if (!token) return;
-    
     const fetchUserDetails = async () => {
       try {
         setStatus(prev => ({ ...prev, isFetchingUserDetails: true }));
-        
         const response = await fetch(`${API_BASE_URL}/users/reqInfo`, {
           method: "GET",
           headers: {
@@ -198,23 +204,41 @@ const Electrical = () => {
             Accept: "application/json",
           },
         });
-
         const data = await response.json();
-        
         if (!response.ok) {
           throw new Error(data.message || "Failed to fetch user details");
         }
-
-        // Update form with user details
+        setUserIds({
+          user_id: data.user_id || "",
+          position_id: typeof data.position_id === "object" && data.position_id !== null
+            ? data.position_id.id || ""
+            : data.position_id || "",
+          requesting_office: typeof data.office_id === "object" && data.office_id !== null
+            ? data.office_id.id || ""
+            : data.office_id || "",
+        });
         setFormData(prev => ({
           ...prev,
-          requesting_personnel: data.full_name || "",
-          position: data.position || "",
-          requesting_office: data.office || "",
+          requesting_personnel: [
+            data.last_name,
+            data.first_name,
+            data.middle_name,
+            data.suffix
+          ].filter(Boolean).join(", "),
+          position: typeof data.position_id === "object" && data.position_id !== null
+            ? data.position_id.name || ""
+            : data.position_id || "",
+          requesting_office: typeof data.office_id === "object" && data.office_id !== null
+            ? data.office_id.name || ""
+            : data.office_id || "",
           contact_number: data.contact_number || "",
         }));
+        setDisplayName(
+          [data.last_name, data.first_name, data.middle_name, data.suffix]
+            .filter(Boolean)
+            .join(", ")
+        );
       } catch (err) {
-        console.error("Error fetching user details:", err);
         setStatus(prev => ({
           ...prev,
           error: err.message || "Failed to fetch user details"
@@ -223,7 +247,6 @@ const Electrical = () => {
         setStatus(prev => ({ ...prev, isFetchingUserDetails: false }));
       }
     };
-
     fetchUserDetails();
   }, [token, API_BASE_URL]);
 
@@ -243,23 +266,42 @@ const Electrical = () => {
     }
   }, [status.error]);
 
+  // Logout logic
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+      if (!token) throw new Error("No token found");
+      const response = await fetch(`${API_BASE_URL}/logout`, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        mode: "cors",
+      });
+      if (!response.ok) throw new Error("Failed to log out");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("user");
+      navigate("/loginpage", { replace: true });
+    } catch (err) {
+      console.error(err.message || "An error occurred during logout");
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     markAllFieldsTouched();
-    
-    // Validate form
     const { isValid, fieldErrors } = validateForm();
     if (!isValid) {
-      // Display the first error in the general error message
       setStatus(prev => ({
         ...prev,
         error: Object.values(fieldErrors)[0]
       }));
       return;
     }
-
-    // Show confirmation
     setStatus(prev => ({ ...prev, showConfirmation: true }));
   };
 
@@ -274,7 +316,6 @@ const Electrical = () => {
       setTimeout(() => navigate("/loginpage"), 2000);
       return;
     }
-
     try {
       setStatus(prev => ({
         ...prev,
@@ -282,18 +323,19 @@ const Electrical = () => {
         error: "",
         success: ""
       }));
-
-      // Include request_type in the API request
       const requestData = {
-        ...formData,
-        maintenance_type_id: 3,  // 3 is for Electrical
-        // Incorporate the request_type into the details if they didn't already do so
-        details: formData.request_type !== "others" 
-          ? formData.details 
-          : `Request type: Other\n\n${formData.details}`
+        date_requested: formData.date_requested,
+        details: formData.request_type === 'other'
+          ? formData.details
+          : `${ELECTRICAL_REQUEST_TYPES.find(type => type.value === formData.request_type)?.label || "Unknown Request"}: ${formData.details}`,
+        requesting_personnel: parseInt(userIds.user_id, 10),
+        position_id: parseInt(userIds.position_id, 10),
+        requesting_office: parseInt(userIds.requesting_office, 10),
+        contact_number: formData.contact_number,
+        maintenance_type_id: 3, // 3 for Electrical
       };
 
-      // API request
+          console.log('Submitting requestData:', requestData);
       const response = await fetch(`${API_BASE_URL}/maintenance-requests`, {
         method: "POST",
         headers: {
@@ -304,9 +346,7 @@ const Electrical = () => {
         body: JSON.stringify(requestData),
         mode: "cors",
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error("Unauthorized: Please log in");
@@ -314,20 +354,15 @@ const Electrical = () => {
           throw new Error(data.message || "Request submission failed");
         }
       }
-
-      // Success!
       setStatus(prev => ({
         ...prev,
         success: "Request submitted successfully!",
         showConfirmation: false
       }));
-
-      // Navigate after success
       const timer = setTimeout(() => {
         navigate("/maintenance");
       }, 3000);
       return () => clearTimeout(timer);
-      
     } catch (err) {
       setStatus(prev => ({
         ...prev,
@@ -337,28 +372,22 @@ const Electrical = () => {
     } finally {
       setStatus(prev => ({ ...prev, isSubmitting: false }));
     }
-  }, [token, formData, navigate, API_BASE_URL]);
+  }, [token, formData, userIds, navigate, API_BASE_URL]);
 
   // Form input feedback indicators - now considers fieldErrors
   const getInputClasses = (field) => {
     const baseClasses = "w-full border rounded-lg px-4 py-2 md:py-3 transition-all";
-    
-    // Show error state if field has a specific error
     if (status.fieldErrors[field]) {
       return `${baseClasses} border-red-400 focus:ring-2 focus:ring-red-400 focus:border-red-400 bg-red-50`;
     }
-    
-    // Otherwise show normal validation state
-    const touchedClasses = status.touched[field] ? 
-      (field === 'details' && formData[field].length < 10) || !formData[field] ? 
-        "border-red-400 focus:ring-2 focus:ring-red-400 focus:border-red-400" : 
-        "border-green-400 focus:ring-2 focus:ring-green-500 focus:border-green-500" : 
+    const touchedClasses = status.touched[field] ?
+      (field === 'details' && formData[field].length < 10) || !formData[field] ?
+        "border-red-400 focus:ring-2 focus:ring-red-400 focus:border-red-400" :
+        "border-green-400 focus:ring-2 focus:ring-green-500 focus:border-green-500" :
       "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
-    
     return `${baseClasses} ${touchedClasses}`;
   };
 
-  // Render loading state
   if (status.isFetchingUserDetails) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
@@ -378,16 +407,13 @@ const Electrical = () => {
       </div>
     );
   }
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-black text-white p-4 flex justify-between items-center relative">
-        <span className="text-xl md:text-2xl font-extrabold tracking-tight">
-          ManageIT
-        </span>
-        <div className="hidden md:block text-xl font-bold text-white">
-          User
-        </div>
+        <span className="text-xl md:text-2xl font-extrabold tracking-tight">ManageIT</span>
+        <div className="hidden md:block text-xl font-bold text-white">User</div>
         <div className="flex items-center gap-4 md:hidden">
           <button
             onClick={() => dispatch({ type: "TOGGLE_MOBILE_MENU" })}
@@ -405,7 +431,7 @@ const Electrical = () => {
           }`}
         >
           <nav className="py-2">
-            {MENU_ITEMS.map((item) => (
+            {SIDEBAR_MENU_ITEMS.map((item) => (
               <NavLink
                 key={item.text}
                 to={item.to}
@@ -422,14 +448,14 @@ const Electrical = () => {
           </div>
         </div>
       </header>
-  
+
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <Sidebar
           isSidebarCollapsed={state.isSidebarCollapsed}
           onToggleSidebar={() => dispatch({ type: "TOGGLE_SIDEBAR" })}
-          menuItems={MENU_ITEMS}
-          title="User"
+          menuItems={SIDEBAR_MENU_ITEMS}
+          onLogout={handleLogout}
         />
         <main className="flex-1 p-6 overflow-auto">
           <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 py-8">
@@ -438,7 +464,7 @@ const Electrical = () => {
                 User Request Slip <br className="hidden sm:block" />
                 (Electrical Section)
               </h2>
-  
+
               {/* Feedback Messages */}
               {status.error && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 flex items-start">
@@ -448,7 +474,7 @@ const Electrical = () => {
                   <span>{status.error}</span>
                 </div>
               )}
-  
+
               {status.success && (
                 <div className="bg-green-50 text-green-600 p-4 rounded-lg mb-6 flex items-start">
                   <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -457,7 +483,7 @@ const Electrical = () => {
                   <span>{status.success}</span>
                 </div>
               )}
-  
+
               <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                 {/* Date Requested */}
                 <div>
@@ -501,12 +527,11 @@ const Electrical = () => {
                     <select
                       className={getInputClasses('request_type')}
                       value={formData.request_type}
-                      onChange={handleRequestTypeChange}
+                      onChange={(e) => updateFormData('request_type', e.target.value)}
                     >
-                      <option value="">-- Select Request Type --</option>
-                      {ELECTRICAL_REQUEST_TYPES.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
+                      {ELECTRICAL_REQUEST_TYPES.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
                         </option>
                       ))}
                     </select>
@@ -524,7 +549,6 @@ const Electrical = () => {
                     </p>
                   )}
                 </div>
-  
                 {/* Specific Details */}
                 <div>
                   <label className="block text-sm md:text-base font-semibold text-gray-700 mb-2">
@@ -559,11 +583,10 @@ const Electrical = () => {
                     </p>
                   ) : null}
                 </div>
-  
+
                 {/* User Information Section */}
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 className="font-medium text-gray-700 mb-3">User Information</h3>
-                  
                   {/* Requesting Personnel */}
                   <div className="mb-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -572,12 +595,11 @@ const Electrical = () => {
                     <input
                       type="text"
                       className="w-full border border-gray-300 bg-gray-100 rounded-lg px-4 py-2 text-gray-700"
-                      value={formData.requesting_personnel}
+                      value={displayName}
                       readOnly
                       disabled
                     />
                   </div>
-  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Position */}
                     <div>
@@ -592,7 +614,6 @@ const Electrical = () => {
                         disabled
                       />
                     </div>
-  
                     {/* Contact Number */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -607,7 +628,6 @@ const Electrical = () => {
                       />
                     </div>
                   </div>
-  
                   {/* Requesting Office */}
                   <div className="mt-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -622,7 +642,7 @@ const Electrical = () => {
                     />
                   </div>
                 </div>
-  
+
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-between mt-6">
                   <button
@@ -660,7 +680,7 @@ const Electrical = () => {
                 </div>
               </form>
             </div>
-  
+
             {/* Confirmation Modal */}
             {status.showConfirmation && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -675,7 +695,7 @@ const Electrical = () => {
                     <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Description:</span> {formData.details}</p>
                   </div>
                   <div className="flex space-x-3 justify-end">
-                  <button
+                    <button
                       type="button"
                       onClick={() => setStatus(prev => ({ ...prev, showConfirmation: false }))}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"

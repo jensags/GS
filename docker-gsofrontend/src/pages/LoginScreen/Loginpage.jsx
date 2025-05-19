@@ -78,6 +78,9 @@ function LoginPage() {
             case "4":
               navigate("/dashboard");
               break;
+            case "5": // Add this case for campus director
+              navigate("/campusdirectordashboard");
+              break;
             default:
               navigate("/dashboard");
           }
