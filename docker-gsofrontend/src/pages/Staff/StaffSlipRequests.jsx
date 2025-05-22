@@ -49,7 +49,10 @@ const RequestsTable = ({ onRowClick, requests, showActions }) => (
         <tbody>
           {requests.length > 0 ? (
             requests.map((request) => (
-              <tr key={request.id} className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-400">
+              <tr
+                key={`${request.requester_id}-${request.date_requested}-${request.details}`}
+                className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-400"
+              >
                 <td className="p-3">{new Date(request.date_requested).toLocaleDateString()}</td>
                 <td className="p-3 font-medium">{request.personnel_fullname || "Unknown Personnel"}</td>
                 <td className="p-3">{request.position_name || "Unknown Position"}</td>
@@ -160,39 +163,24 @@ const StaffSlipRequests = () => {
     }
   };
 
-  // Fetch reference data (statuses, offices, maintenance types, positions)
+  // Fetch reference data (statuses, offices, maintenance types, positions) from /common-datas
   useEffect(() => {
     const fetchReferenceData = async () => {
       if (!token) return;
 
       try {
-        // Fetch statuses
-        const statusesRes = await fetch(`${API_BASE_URL}/statuses`, {
+        // Fetch all reference data in one request
+        const res = await fetch(`${API_BASE_URL}/common-datas`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const statusesData = await statusesRes.json();
-        setStatuses(Array.isArray(statusesData.data) ? statusesData.data : statusesData);
+        const data = await res.json();
 
-        // Fetch offices
-        const officesRes = await fetch(`${API_BASE_URL}/offices`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const officesData = await officesRes.json();
-        setOffices(Array.isArray(officesData.data) ? officesData.data : officesData);
-
-        // Fetch maintenance types
-        const maintenanceTypesRes = await fetch(`${API_BASE_URL}/maintenance-types`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const maintenanceTypesData = await maintenanceTypesRes.json();
-        setMaintenanceTypes(Array.isArray(maintenanceTypesData.data) ? maintenanceTypesData.data : maintenanceTypesData);
-
-        // Fetch positions
-        const positionsRes = await fetch(`${API_BASE_URL}/positions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const positionsData = await positionsRes.json();
-        setPositions(Array.isArray(positionsData.data) ? positionsData.data : positionsData);
+        setStatuses(Array.isArray(data.statuses) ? data.statuses : []);
+        setOffices(Array.isArray(data.offices) ? data.offices : []);
+        setPositions(Array.isArray(data.positions) ? data.positions : []);
+        // maintenanceTypes still fetched from its own endpoint unless included in /common-datas
+        // If maintenanceTypes is also in /common-datas, add:
+        // setMaintenanceTypes(Array.isArray(data.maintenance_types) ? data.maintenance_types : []);
       } catch (err) {
         console.error("Error fetching reference data:", err);
       }
@@ -210,39 +198,28 @@ const StaffSlipRequests = () => {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/maintenance-requests`, {
+        // Use the new API endpoint
+        const res = await fetch(`${API_BASE_URL}/maintenance-requests/list-with-details`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         const data = await res.json();
-        const list = Array.isArray(data.data) ? data.data : data;
+        const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
 
-        // Enhance requests with reference data names and fullnames
-        const enhancedRequests = await Promise.all(
-          list.map(async (request) => {
-            // Find office name
-            const office = offices.find(o => o.id === request.requesting_office);
-            // Find maintenance type name
-            const maintenancetype = maintenanceTypes.find(m => m.id === request.maintenance_type_id);
-            // Find status name
-            const status = statuses.find(s => s.id === request.status_id);
-            // Find position name
-            const position = positions.find(p => p.id === request.position_id);
-            // Fetch personnel fullname
-            const personnelFullname = await fetchUserFullname(request.requesting_personnel);
-            
-            return {
-              ...request,
-              office_name: office ? office.name : 'Unknown Office',
-              maintenance_type_name: maintenancetype ? maintenancetype.type_name : 'Unknown Type',
-              status_name: status ? status.name : 'Unknown Status',
-              position_name: position ? position.name : 'Unknown Position',
-              personnel_fullname: personnelFullname
-            };
-          })
-        );
+        // Enhance requests if needed (here, the API already provides names)
+        const enhancedRequests = list.map((request) => ({
+          ...request,
+          date_requested: request.date_requested,
+          personnel_fullname: request.requesting_personnel,
+          position_name: request.position,
+          office_name: request.requesting_office,
+          maintenance_type_name: request.maintenance_type,
+          status_name: request.status,
+          contact_number: request.contact_number,
+          verified_by: request.verified_by,
+        }));
 
         setRequests(enhancedRequests);
       } catch (err) {
@@ -253,10 +230,8 @@ const StaffSlipRequests = () => {
       }
     };
 
-    if (offices.length > 0 && maintenanceTypes.length > 0 && statuses.length > 0 && positions.length > 0) {
-      fetchRequests();
-    }
-  }, [token, navigate, offices, maintenanceTypes, statuses, positions]);
+    fetchRequests();
+  }, [token, navigate]);
 
   const handleRowClick = useCallback(
     (id, status) => {

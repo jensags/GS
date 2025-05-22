@@ -235,7 +235,7 @@ const RequestStatus = () => {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${API_BASE_URL}/maintenance-requests`, {
+          fetch(`${API_BASE_URL}/maintenance-requests/list-with-details`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           }),

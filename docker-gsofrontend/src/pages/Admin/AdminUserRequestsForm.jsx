@@ -100,68 +100,40 @@ function AdminUserRequestsForm() {
     const fetchLookupData = async () => {
       try {
         if (!token) return;
-        
-        // Fetch roles
-        const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
+
+        // Fetch all lookup data in one request
+        const response = await fetch(`${API_BASE_URL}/common-datas`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
           }
         });
-        const rolesData = await rolesResponse.json();
+        const data = await response.json();
 
-        // Fetch positions
-        const positionsResponse = await fetch(`${API_BASE_URL}/positions`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        });
-        const positionsData = await positionsResponse.json();
-
-        // Fetch offices
-        const officesResponse = await fetch(`${API_BASE_URL}/offices`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        });
-        const officesData = await officesResponse.json();
-
-        // Fetch statuses
-        const statusesResponse = await fetch(`${API_BASE_URL}/statuses`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        });
-        const statusesData = await statusesResponse.json();
-
-        // Format the data for select dropdowns
         setRoles([
           { label: "Select Role", value: "", disabled: true },
-          ...rolesData.map(role => ({ label: role.role_name || role.name || role.label, value: role.id }))
+          ...data.roles.map(role => ({ label: role.role_name || role.name || role.label, value: role.id }))
         ]);
         setPositions([
           { label: "Select Position", value: "", disabled: true },
-          ...positionsData.map(position => ({ label: position.name, value: position.id }))
+          ...data.positions.map(position => ({ label: position.name, value: position.id }))
         ]);
         setOffices([
           { label: "Select Office", value: "", disabled: true },
-          ...officesData.map(office => ({ label: office.name, value: office.id }))
+          ...data.offices.map(office => ({ label: office.name, value: office.id }))
         ]);
         setStatuses([
           { label: "Select Status", value: "", disabled: true },
-          ...statusesData.map(status => ({ label: status.name || status.label, value: status.id }))
+          ...data.statuses.map(status => ({ label: status.name || status.label, value: status.id }))
         ]);
-        
+
         // Update loading state for lookup data
-        setDataLoadingState(prev => ({...prev, lookupData: false}));
+        setDataLoadingState(prev => ({ ...prev, lookupData: false }));
       } catch (err) {
         setError("Failed to load lookup data. Please refresh the page.");
         console.error("Error fetching lookup data:", err);
         // Even on error, mark lookup data as loaded to prevent infinite loading state
-        setDataLoadingState(prev => ({...prev, lookupData: false}));
+        setDataLoadingState(prev => ({ ...prev, lookupData: false }));
       }
     };
 

@@ -307,7 +307,7 @@ const CampusDirectorMaintenanceRequestForm = () => {
       const endpoint =
         action === "deny"
           ? `${API_BASE_URL}/maintenance-requests/${id}/disapprove`
-          : `${API_BASE_URL}/maintenance-requests/${id}/approve-campusdirector`;
+          : `${API_BASE_URL}/maintenance-requests/${id}/approve-director`;
 
       const payload = {
         id,
@@ -523,20 +523,6 @@ const CampusDirectorMaintenanceRequestForm = () => {
 
             {!isLoading && (
               <form className="space-y-4 md:space-y-6 mt-6" onSubmit={(e) => handleDecision(e, "approve")}>
-                <div>
-                  <label className="block font-medium text-gray-700 mb-1">Approved by Campus Director</label>
-                  <input
-                    type="text"
-                    value={directorInput}
-                    onChange={(e) => setDirectorInput(e.target.value)}
-                    disabled={!approvedBy1}
-                    className={`w-full border border-gray-300 rounded px-3 py-2 ${!approvedBy1 ? "bg-gray-100" : ""}`}
-                    placeholder="Optional remarks or name"
-                  />
-                  {!approvedBy1 && (
-                    <p className="text-red-500 text-sm mt-1">Waiting for Head 1 approval.</p>
-                  )}
-                </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Approved by:
