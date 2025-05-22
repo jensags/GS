@@ -1,38 +1,137 @@
-import { memo } from 'react';
-import { NavLink } from 'react-router-dom';
-import Icon from './Icon';
+import { memo, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 
-const SidebarItem = memo(({ item, isSidebarCollapsed }) => (
-  <NavLink
-    to={item.to}
-    className={({ isActive }) => 
-      `flex items-center p-2 rounded-lg hover:bg-gray-700 transition-all group relative ${
-        isActive ? 'bg-gray-800' : ''
-      }`}
+// Constants
+const MENU_ITEMS = [
+  { text: "Profile", to: "/profile", icon: "M11.5 15H7a4 4 0 0 0-4 4v2 M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z M10 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8z"},
+  { text: "Dashboard", to: "/dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+  { text: "Notifications", to: "/notifications", icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" },
+  { text: "Schedules", to: "/schedules", icon: "M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M16 2v4 M3 10h18 M8 2v4 M17 14h-6 M13 18H7 M7 14h.01 M17 18h.01" },
+  { text: "Request Status", to: "/requeststatus", icon: "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 1 1 1-1z M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2 M12 11h4 M12 16h4 M8 11h.01 M8 16h.01"},
+  { text: "User Feedback", to: "/userfeedback", icon: "M20 11V7a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v4a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4zM8 7h8a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V7z" },
+  { text: "Settings", to: "/settings", icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" },
+  { text: "Logout", to: "/loginpage", icon: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" }
+];
+
+// Icon component to render SVG paths
+const Icon = ({ path, className = "" }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    className={className} 
+    fill="none" 
+    viewBox="0 0 24 24" 
+    stroke="currentColor" 
+    strokeWidth={1.5}
   >
-    <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center relative group"> 
-      <Icon 
-        path={item.icon} 
-        className="w-full h-full transition-transform hover:scale-110" 
-      />
-      {isSidebarCollapsed && (
-        <span className="absolute left-full ml-2 px-2 py-1 text-sm bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-lg pointer-events-none">
-          {item.text}
-        </span>
-      )}
-    </div>
-    <span className={`ml-3 transition-all duration-300 ${
-      !isSidebarCollapsed ? 'opacity-100 max-w-40' : 'opacity-0 max-w-0 overflow-hidden'
-    }`}>
-      {item.text}
-    </span>
-  </NavLink>
-));
+    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+  </svg>
+);
 
+// SidebarItem component
+const SidebarItem = memo(({ item, isSidebarCollapsed, onLogout }) => {
+  const isLogout = item.text === 'Logout';
+
+  const content = (
+    <>
+      <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center relative group">
+        <Icon 
+          path={item.icon} 
+          className="w-full h-full transition-transform hover:scale-110" 
+        />
+        {isSidebarCollapsed && (
+          <span className="absolute left-full ml-2 px-2 py-1 text-sm bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-lg pointer-events-none">
+            {item.text}
+          </span>
+        )}
+      </div>
+      <span className={`ml-3 transition-all duration-300 ${
+        !isSidebarCollapsed ? 'opacity-100 max-w-40' : 'opacity-0 max-w-0 overflow-hidden'
+      }`}>
+        {item.text}
+      </span>
+    </>
+  );
+
+  return isLogout ? (
+    <button
+      onClick={onLogout}
+      className="flex items-center p-2 rounded-lg hover:bg-gray-700 transition-all group w-full text-left"
+    >
+      {content}
+    </button>
+  ) : (
+    <NavLink
+      to={item.to}
+      className={({ isActive }) => 
+        `flex items-center p-2 rounded-lg hover:bg-gray-700 transition-all group relative ${
+          isActive ? 'bg-gray-800' : ''
+        }`}
+    >
+      {content}
+    </NavLink>
+  );
+});
+
+const SidebarDemo = () => {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const navigate = useNavigate(); 
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed(prev => !prev);
+  };
+  
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      console.log("Calling logout API with token:", token); 
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/logout`, { 
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to log out");
+      }
+
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("user");
+
+      navigate("/loginpage", { replace: true });
+    } catch (err) {
+      console.error(err.message || "An error occurred during logout");
+    }
+  };
+  
+ return (
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar 
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebar={handleToggleSidebar}
+        menuItems={MENU_ITEMS}
+        onLogout={handleLogout}
+      />
+    </div>
+  );
+};
+
+// Sidebar component
 const Sidebar = memo(({ 
   isSidebarCollapsed, 
   onToggleSidebar,
-  menuItems = [], // Default to an empty array if menuItems is not passed
+  menuItems = MENU_ITEMS, 
+  onLogout,
 }) => (
   <aside className={`hidden md:block bg-gray-900 text-white transition-[width] duration-300 ease-in-out relative h-full z-20 ${
     isSidebarCollapsed ? 'w-16' : 'w-64'
@@ -47,17 +146,14 @@ const Sidebar = memo(({
         </button>
 
         <nav className="space-y-2">
-          {menuItems.length > 0 ? (
-            menuItems.map((item) => (
-              <SidebarItem
-                key={item.text}
-                item={item}
-                isSidebarCollapsed={isSidebarCollapsed}
-              />
-            ))
-          ) : (
-            <div className="text-gray-400">No items available</div>
-          )}
+          {menuItems.map((item) => (
+            <SidebarItem
+              key={item.text}
+              item={item}
+              isSidebarCollapsed={isSidebarCollapsed}
+              onLogout={onLogout} 
+            />
+          ))}
         </nav>
       </div>
 
@@ -70,4 +166,8 @@ const Sidebar = memo(({
   </aside>
 ));
 
-export default Sidebar;
+// Export the main component for demo purposes
+export default SidebarDemo;
+
+// Also export individual components for use in other parts of the application
+export { Sidebar, MENU_ITEMS };

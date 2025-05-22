@@ -1,8 +1,8 @@
 import { useState, useReducer, useEffect, useCallback, memo, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar';
 import Icon from '../../components/Icon';
 import ScheduleSidebar from '../../components/ScheduleSidebar';
+import { StaffSidebar, MENU_ITEMS as STAFF_MENU_ITEMS } from '../../components/StaffSidebar';
 
 // Custom Hooks
 const useClickOutside = (ref, handler) => {
@@ -96,13 +96,28 @@ const StaffDashboard = () => {
     isMobileMenuOpen: false,
   });
 
-  // Retrieve token from storage
-  useEffect(() => {
-    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-    if (!token) {
-      navigate("/loginpage"); // Redirect to login if token is missing
+  // Logout handler (copied from StaffSidebar.jsx)
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+      if (!token) throw new Error("No token found");
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/logout`, { 
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        mode: "cors",
+      });
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("user");
+      navigate("/loginpage", { replace: true });
+    } catch (err) {
+      console.error(err.message || "An error occurred during logout");
     }
-  }, [navigate]);
+  };
 
   const handleNavigation = useCallback((item) => {
     switch (item.text) {
@@ -167,15 +182,13 @@ const StaffDashboard = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
+        <StaffSidebar
           isSidebarCollapsed={state.isSidebarCollapsed}
           onToggleSidebar={() => dispatch({ type: "TOGGLE_SIDEBAR" })}
-          menuItems={MENU_ITEMS}
-          title="Staff"
+          menuItems={STAFF_MENU_ITEMS}
+          onLogout={handleLogout}
         />
-        
         <DashboardContent onCardClick={handleNavigation} />
-        
         <ScheduleSidebar />
       </div>
     </div>

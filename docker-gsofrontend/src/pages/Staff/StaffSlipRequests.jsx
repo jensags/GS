@@ -30,48 +30,50 @@ const MENU_ITEMS = [
   { text: "Logout", to: "/loginpage", icon: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" }
 ];
 
-const maintenanceTypeMap = {
-  1: "Janitorial",
-  2: "Carpentry",
-  3: "Electrical",
-  4: "AirConditioning",
-};
-
 const RequestsTable = ({ onRowClick, requests, showActions }) => (
   <main className="flex-1 p-4 md:p-6 lg:p-8 bg-white/95 backdrop-blur-sm overflow-y-auto">
     <div className="bg-white rounded-lg shadow-sm md:shadow-lg border border-gray-200">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-50 border-b-2 border-gray-200">
-            <th className="p-3 text-left font-semibold">Requesting Personnel</th>
-            <th className="p-3 text-left font-semibold">Requesting Office</th>
+            <th className="p-3 text-left font-semibold">Date Requested</th>
+            <th className="p-3 text-left font-semibold">Personnel Name</th>
+            <th className="p-3 text-left font-semibold">Position</th>
+            <th className="p-3 text-left font-semibold">Office</th>
             <th className="p-3 text-left font-semibold">Maintenance Type</th>
             <th className="p-3 text-left font-semibold">Status</th>
+            <th className="p-3 text-left font-semibold">Contact Number</th>
             {showActions && <th className="p-3 text-left font-semibold">Actions</th>}
           </tr>
         </thead>
         <tbody>
           {requests.length > 0 ? (
             requests.map((request) => (
-              <tr key={request.id} className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-400">
-                <td className="p-3 font-medium">{request.requesting_personnel}</td>
-                <td className="p-3">{request.requesting_office}</td>
-                <td className="p-3">{maintenanceTypeMap[request.maintenance_type_id] || "Unknown"}</td>
+              <tr
+                key={`${request.requester_id}-${request.date_requested}-${request.details}`}
+                className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-400"
+              >
+                <td className="p-3">{new Date(request.date_requested).toLocaleDateString()}</td>
+                <td className="p-3 font-medium">{request.personnel_fullname || "Unknown Personnel"}</td>
+                <td className="p-3">{request.position_name || "Unknown Position"}</td>
+                <td className="p-3">{request.office_name || "Unknown Office"}</td>
+                <td className="p-3">{request.maintenance_type_name || "Unknown Type"}</td>
                 <td className="p-3">
                   <span className={`px-3 py-1 rounded-full text-sm ${
-                    request.status === "Pending"
+                    request.status_name === "Pending" || request.status_id === 1
                       ? "bg-yellow-100 text-yellow-800"
-                      : request.status === "Approved"
+                      : request.status_name === "Approved"
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }`}>
-                    {request.status}
+                    {request.status_name}
                   </span>
                 </td>
+                <td className="p-3">{request.contact_number}</td>
                 {showActions && (
                   <td className="p-3">
                     <button
-                      onClick={() => onRowClick(request.id, request.status)}
+                      onClick={() => onRowClick(request.id, request.status_name)}
                       className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg"
                     >
                       Review
@@ -82,7 +84,7 @@ const RequestsTable = ({ onRowClick, requests, showActions }) => (
             ))
           ) : (
             <tr>
-              <td colSpan={showActions ? 5 : 4} className="p-3 text-center">
+              <td colSpan={showActions ? 8 : 7} className="p-3 text-center">
                 No maintenance requests found
               </td>
             </tr>
@@ -102,8 +104,90 @@ const StaffSlipRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("Pending");
+  const [statuses, setStatuses] = useState([]);
+  const [offices, setOffices] = useState([]);
+  const [maintenanceTypes, setMaintenanceTypes] = useState([]);
+  const [positions, setPositions] = useState([]);
 
   const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+
+  // Function to format full name from API response
+  const formatFullName = (userData) => {
+    if (!userData) return "Unknown User";
+    
+    const { first_name = "", middle_name = "", last_name = "", suffix = "" } = userData;
+    
+    // Format the name: Last Name, First Name Middle Initial. Suffix
+    let formattedName = `${last_name || ""}, ${first_name || ""}`;
+    
+    // Add middle initial if available
+    if (middle_name) {
+      formattedName += ` ${middle_name.charAt(0)}.`;
+    }
+    
+    // Add suffix if available
+    if (suffix) {
+      formattedName += ` ${suffix}`;
+    }
+    
+    return formattedName.trim() || "Unknown User";
+  };
+
+  // Function to fetch user fullname by ID
+  const fetchUserFullname = async (userId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${userId}/fullname`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch user data: ${res.status}`);
+      }
+      
+      const userData = await res.json();
+      
+      // Check if we received the expected format
+      if (userData.message === "User retrieved successfully.") {
+        return formatFullName(userData);
+      } else if (userData.data) {
+        // Fallback for different format
+        return formatFullName(userData.data);
+      } else {
+        // Generic fallback
+        return `User ${userId}`;
+      }
+    } catch (err) {
+      console.error(`Error fetching fullname for user ${userId}:`, err);
+      return `User ${userId}`;
+    }
+  };
+
+  // Fetch reference data (statuses, offices, maintenance types, positions) from /common-datas
+  useEffect(() => {
+    const fetchReferenceData = async () => {
+      if (!token) return;
+
+      try {
+        // Fetch all reference data in one request
+        const res = await fetch(`${API_BASE_URL}/common-datas`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        setStatuses(Array.isArray(data.statuses) ? data.statuses : []);
+        setOffices(Array.isArray(data.offices) ? data.offices : []);
+        setPositions(Array.isArray(data.positions) ? data.positions : []);
+        // maintenanceTypes still fetched from its own endpoint unless included in /common-datas
+        // If maintenanceTypes is also in /common-datas, add:
+        // setMaintenanceTypes(Array.isArray(data.maintenance_types) ? data.maintenance_types : []);
+      } catch (err) {
+        console.error("Error fetching reference data:", err);
+      }
+    };
+
+    fetchReferenceData();
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
@@ -114,12 +198,30 @@ const StaffSlipRequests = () => {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/maintenance-requests`, {
-          headers: { Authorization: `Bearer ${token}` },
+        // Use the new API endpoint
+        const res = await fetch(`${API_BASE_URL}/maintenance-requests/list-with-details`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         const data = await res.json();
-        const list = Array.isArray(data.data) ? data.data : data;
-        setRequests(list);
+        const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+
+        // Enhance requests if needed (here, the API already provides names)
+        const enhancedRequests = list.map((request) => ({
+          ...request,
+          date_requested: request.date_requested,
+          personnel_fullname: request.requesting_personnel,
+          position_name: request.position,
+          office_name: request.requesting_office,
+          maintenance_type_name: request.maintenance_type,
+          status_name: request.status,
+          contact_number: request.contact_number,
+          verified_by: request.verified_by,
+        }));
+
+        setRequests(enhancedRequests);
       } catch (err) {
         console.error(err);
         setRequests([]);
@@ -133,7 +235,9 @@ const StaffSlipRequests = () => {
 
   const handleRowClick = useCallback(
     (id, status) => {
-      if (status === "Pending") {
+      // Consider both status name and status ID
+      const isPending = status === "Pending" || status === 1;
+      if (isPending) {
         navigate(`/staffmaintenancerequestform/${id}`);
       } else {
         navigate(`/staffviewmaintenancerequestform/${id}`);
@@ -142,7 +246,17 @@ const StaffSlipRequests = () => {
     [navigate]
   );
 
-  const filtered = requests.filter((r) => r.status === selectedTab);
+  const filtered = requests.filter((r) => {
+    // Only show requests where verified_by is null
+    if (r.verified_by !== null && r.verified_by !== undefined) return false;
+
+    // Check if selected tab is "Pending" and status is either ID 1 or name "Pending" (case insensitive)
+    if (selectedTab === "Pending") {
+      return r.status_id === 1 || r.status_name?.toLowerCase() === "pending";
+    }
+    // For other tabs, match by status name
+    return r.status_name === selectedTab;
+  });
   const showActions = true;
 
   if (loading) return <div className="p-4">Loading requests...</div>;
@@ -196,21 +310,22 @@ const StaffSlipRequests = () => {
 
           {/* Tabs */}
           <div className="flex space-x-4 mb-6">
-            {["Pending", "Approved", "Disapproved"].map((tab) => (
+            {statuses.map((status) => (
               <button
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
+                key={status.id}
+                onClick={() => setSelectedTab(status.name)}
                 className={`px-4 py-2 font-semibold rounded-md ${
-                  selectedTab === tab
-                    ? tab === "Pending"
+                  (selectedTab === status.name) || 
+                  (selectedTab === "Pending" && (status.id === 1 || status.name?.toLowerCase() === "pending"))
+                    ? status.name === "Pending" || status.id === 1
                       ? "bg-yellow-500 text-white"
-                      : tab === "Approved"
+                      : status.name === "Approved"
                       ? "bg-green-500 text-white"
                       : "bg-red-500 text-white"
                     : "bg-transparent text-gray-700"
                 }`}
               >
-                {tab}
+                {status.name}
               </button>
             ))}
           </div>

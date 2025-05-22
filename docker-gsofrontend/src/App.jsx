@@ -46,6 +46,9 @@ import UserFeedback from "./pages/Userdashboard/UserFeedback.jsx";
 import Profile from "./pages/Userdashboard/Profile.jsx";
 import UserChangePass from "./pages/Userdashboard/UserChangePass.jsx";
 import Report from "./pages/Staff/Report.jsx";
+import CampusDirectorDashboard from "./pages/CampusDirector/CampusDirectorDashboard.jsx";
+import CampusDirectorRequests from "./pages/CampusDirector/CampusDirectorRequests.jsx";
+import CampusDirectorMaintenanceRequestForm from "./pages/CampusDirector/CampusDirectorMaintenanceRequestForm.jsx";
 
 function App() {
   const token = localStorage.getItem('token'); // Retrieve token from localStorage
@@ -87,8 +90,8 @@ function App() {
         <Route path="/adminairconditioning" element={<AdminAirconditioning token={token} />} />
         <Route path="/admincarpentryform/:id" element={<AdminCarpentryform token={token} />} />
         <Route path="/adminuserrequests" element={<AdminUserRequests token={token} />} />
-        <Route path="/adminuserrequestsform/:id" element={<AdminUserRequestsForm token={token} />} />
-
+        <Route path="/adminuserrequestsform/:user_id" element={<AdminUserRequestsForm />} />
+        
         {/* Staff Routes */}
         <Route path="/staffdashboard" element={<StaffDashboard />} />
         <Route path="/staffrequests" element={<StaffRequests />} />
@@ -112,6 +115,11 @@ function App() {
         <Route path="/headairconditioning" element={<HeadAirconditioning token={token} />} />
         <Route path="/headrequests" element={<HeadRequests token={token} />} />
         <Route path="/headmaintenancerequestform/:id" element={<HeadMaintenanceRequestForm token={token} />} />
+
+        {/* Campus Director Routes */}
+        <Route path="/campusdirectordashboard" element={<CampusDirectorDashboard token={token} />} />
+        <Route path="/campusdirectorrequests" element={<CampusDirectorRequests token={token} />} />
+        <Route path="/campusdirectormaintenancerequestform/:id" element={<CampusDirectorMaintenanceRequestForm token={token} />} />
       </Routes>
     </Router>
   );
