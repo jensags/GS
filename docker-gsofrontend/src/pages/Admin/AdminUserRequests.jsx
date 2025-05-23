@@ -1,7 +1,7 @@
-import { useState, useReducer, useEffect, useCallback, memo, useRef } from 'react';
+import { useState, useReducer, useEffect, useCallback, memo, useRef, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import Icon from '../../components/Icon';
-import { AdminSidebar, MENU_ITEMS as ADMIN_MENU_ITEMS } from '../../components/AdminSidebar'; // <-- Add this import
+import { AdminSidebar, MENU_ITEMS as ADMIN_MENU_ITEMS } from '../../components/AdminSidebar'; 
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -123,6 +123,11 @@ const StatusBadge = memo(({ status }) => {
       bg: 'bg-red-100',
       text: 'text-red-800',
       icon: 'M6 18L18 6M6 6l12 12'
+    },
+    Disapproved: {
+      bg: 'bg-red-100',
+      text: 'text-red-800',
+      icon: 'M6 18L18 6M6 6l12 12'
     }
   };
 
@@ -143,15 +148,24 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6">
-    <Icon path="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" className="w-12 h-12 text-gray-400 mb-3" />
-    <div className="text-lg font-medium text-gray-600 mb-1">No pending requests</div>
-    <p className="text-sm text-gray-500 text-center">
-      When users register for accounts, their requests will appear here for approval.
-    </p>
-  </div>
-);
+const EmptyState = ({ searchTerm, statusFilter }) => {
+  const isFiltered = searchTerm || statusFilter !== 'All Statuses';
+  
+  return (
+    <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6">
+      <Icon path="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" className="w-12 h-12 text-gray-400 mb-3" />
+      <div className="text-lg font-medium text-gray-600 mb-1">
+        {isFiltered ? 'No matching requests found' : 'No pending requests'}
+      </div>
+      <p className="text-sm text-gray-500 text-center">
+        {isFiltered 
+          ? 'Try adjusting your search or filter criteria.'
+          : 'When users register for accounts, their requests will appear here for approval.'
+        }
+      </p>
+    </div>
+  );
+};
 
 const UserRequestCard = memo(({ request, onRowClick }) => (
   <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow p-4 space-y-3">
@@ -186,7 +200,31 @@ const UserRequestCard = memo(({ request, onRowClick }) => (
   </div>
 ));
 
-const UserRequestsTable = memo(({ onRowClick, requests, isLoading }) => {
+const UserRequestsTable = memo(({ 
+  onRowClick, 
+  requests, 
+  isLoading, 
+  searchTerm, 
+  setSearchTerm, 
+  statusFilter, 
+  setStatusFilter,
+  accountStatuses 
+}) => {
+  // Filter requests based on search term and status
+  const filteredRequests = useMemo(() => {
+    return requests.filter(request => {
+      const matchesSearch = !searchTerm || 
+        request.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (request.roleName && request.roleName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesStatus =
+        statusFilter === "" || String(request.status_id) === String(statusFilter);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [requests, searchTerm, statusFilter]);
+
   if (isLoading) {
     return (
       <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-50 overflow-y-auto">
@@ -195,18 +233,6 @@ const UserRequestsTable = memo(({ onRowClick, requests, isLoading }) => {
           <p className="text-gray-600 mt-1">Review and manage pending user registration requests</p>
         </div>
         <LoadingSpinner />
-      </main>
-    );
-  }
-
-  if (!requests.length) {
-    return (
-      <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-50 overflow-y-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">User Requests</h1>
-          <p className="text-gray-600 mt-1">Review and manage pending user registration requests</p>
-        </div>
-        <EmptyState />
       </main>
     );
   }
@@ -224,6 +250,8 @@ const UserRequestsTable = memo(({ onRowClick, requests, isLoading }) => {
               <input 
                 type="text" 
                 placeholder="Search requests..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               />
               <Icon 
@@ -231,90 +259,102 @@ const UserRequestsTable = memo(({ onRowClick, requests, isLoading }) => {
                 className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" 
               />
             </div>
-            <select className="bg-white border border-gray-300 rounded-lg py-2 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-              <option>All Statuses</option>
-              <option>Pending</option>
-              <option>Approved</option>
-              <option>Rejected</option>
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg py-2 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            >
+              <option value="">All Statuses</option>
+              {accountStatuses.map((status) => (
+                <option key={status.id} value={status.id}>
+                  {status.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
       </div>
-  
-      {/* Mobile Grid View */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-4">
-        {requests.map((request) => (
-          <UserRequestCard 
-            key={request.id} 
-            request={request} 
-            onRowClick={onRowClick} 
-          />
-        ))}
-      </div>
-  
-      {/* Desktop Table */}
-      <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="p-4 text-left font-semibold text-gray-600 border-b">Username</th>
-              <th className="p-4 text-left font-semibold text-gray-600 border-b">Email</th>
-              <th className="p-4 text-left font-semibold text-gray-600 border-b">Role</th>
-              <th className="p-4 text-left font-semibold text-gray-600 border-b">Registration Date</th>
-              <th className="p-4 text-left font-semibold text-gray-600 border-b">Status</th>
-              <th className="p-4 text-left font-semibold text-gray-600 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((request, index) => (
-              <tr 
+
+      {filteredRequests.length === 0 ? (
+        <EmptyState searchTerm={searchTerm} statusFilter={statusFilter} />
+      ) : (
+        <>
+          {/* Mobile Grid View */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-4">
+            {filteredRequests.map((request) => (
+              <UserRequestCard 
                 key={request.id} 
-                className={`hover:bg-gray-50 ${index !== requests.length - 1 ? 'border-b border-gray-200' : ''}`}
-              >
-                <td className="p-4">
-                  <div className="flex items-center">
-                    <div className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center font-medium mr-3">
-                      {request.username ? request.username.charAt(0).toUpperCase() : "U"}
-                    </div>
-                    <span className="font-medium text-gray-900">{request.username}</span>
-                  </div>
-                </td>
-                <td className="p-4 text-gray-600">{request.email}</td>
-                <td className="p-4 capitalize text-gray-600">
-                  {request.roleName || 'Loading role...'}
-                </td>
-                <td className="p-4 text-gray-600">{new Date(request.created_at).toLocaleDateString()}</td>
-                <td className="p-4">
-                  <StatusBadge status={request.status} />
-                </td>
-                <td className="p-4">
-                  <button
-                    onClick={() => onRowClick(request.id)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center"
-                  >
-                    <Icon path="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" className="w-4 h-4 mr-2" />
-                    Review
-                  </button>
-                </td>
-              </tr>
+                request={request} 
+                onRowClick={onRowClick} 
+              />
             ))}
-          </tbody>
-        </table>
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Showing <span className="font-medium">{requests.length}</span> requests
           </div>
-          <div className="flex items-center space-x-2">
-            <button className="bg-white border border-gray-300 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
-              Previous
-            </button>
-            <span className="bg-indigo-600 text-white rounded-md px-3 py-1 text-sm font-medium">1</span>
-            <button className="bg-white border border-gray-300 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
-              Next
-            </button>
+      
+          {/* Desktop Table */}
+          <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-4 text-left font-semibold text-gray-600 border-b">Username</th>
+                  <th className="p-4 text-left font-semibold text-gray-600 border-b">Email</th>
+                  <th className="p-4 text-left font-semibold text-gray-600 border-b">Role</th>
+                  <th className="p-4 text-left font-semibold text-gray-600 border-b">Registration Date</th>
+                  <th className="p-4 text-left font-semibold text-gray-600 border-b">Status</th>
+                  <th className="p-4 text-left font-semibold text-gray-600 border-b">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRequests.map((request, index) => (
+                  <tr 
+                    key={request.id} 
+                    className={`hover:bg-gray-50 ${index !== filteredRequests.length - 1 ? 'border-b border-gray-200' : ''}`}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center">
+                        <div className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center font-medium mr-3">
+                          {request.username ? request.username.charAt(0).toUpperCase() : "U"}
+                        </div>
+                        <span className="font-medium text-gray-900">{request.username}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-gray-600">{request.email}</td>
+                    <td className="p-4 capitalize text-gray-600">
+                      {request.roleName || 'Loading role...'}
+                    </td>
+                    <td className="p-4 text-gray-600">{new Date(request.created_at).toLocaleDateString()}</td>
+                    <td className="p-4">
+                      <StatusBadge status={request.status} />
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => onRowClick(request.id)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center"
+                      >
+                        <Icon path="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" className="w-4 h-4 mr-2" />
+                        Review
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing <span className="font-medium">{filteredRequests.length}</span> of <span className="font-medium">{requests.length}</span> requests
+              </div>
+              <div className="flex items-center space-x-2">
+                <button className="bg-white border border-gray-300 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
+                  Previous
+                </button>
+                <span className="bg-indigo-600 text-white rounded-md px-3 py-1 text-sm font-medium">1</span>
+                <button className="bg-white border border-gray-300 rounded-md px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </main>
   );
 });
@@ -327,8 +367,13 @@ const AdminUserRequests = () => {
   });
   const [requests, setRequests] = useState([]);
   const [roles, setRoles] = useState({});
+  const [accountStatuses, setAccountStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState("");
+  
+  // New state for search and filter
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   // Retrieve token from storage
   useEffect(() => {
@@ -339,6 +384,35 @@ const AdminUserRequests = () => {
       setToken(authToken);
     }
   }, [navigate]);
+
+  // Fetch account statuses from API
+  const fetchAccountStatuses = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/accountStatuses`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch account statuses: ${response.status} ${response.statusText}`);
+        return [];
+      }
+
+      const data = await response.json();
+      console.log("Fetched account statuses:", data);
+
+      // Extract statuses array from response
+      const statusesArray = Array.isArray(data.statuses) ? data.statuses : [];
+      console.log("Processed account statuses:", statusesArray);
+      return statusesArray;
+    } catch (error) {
+      console.error("Error fetching account statuses:", error);
+      return [];
+    }
+  };
 
   // Fetch all roles once to create a mapping dictionary
   const fetchAllRoles = async () => {
@@ -385,12 +459,17 @@ const AdminUserRequests = () => {
   const fetchUserRequests = async () => {
     setLoading(true);
     try {
-      // First fetch all roles to create a mapping
-      const roleMap = await fetchAllRoles();
+      // First fetch account statuses and roles in parallel
+      const [roleMap, statusesArray] = await Promise.all([
+        fetchAllRoles(),
+        fetchAccountStatuses()
+      ]);
+      
       setRoles(roleMap);
+      setAccountStatuses(statusesArray);
       
       // Then fetch user requests
-      const response = await fetch(`${API_BASE_URL}/pending-approvals`, {
+      const response = await fetch(`${API_BASE_URL}/users-list`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -482,7 +561,12 @@ const AdminUserRequests = () => {
         <UserRequestsTable 
           onRowClick={handleRowClick} 
           requests={requests} 
-          isLoading={loading} 
+          isLoading={loading}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          accountStatuses={accountStatuses}
         />
       </div>
     </div>
