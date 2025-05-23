@@ -73,7 +73,7 @@ const RequestsTable = ({ onRowClick, requests, showActions }) => (
                 {showActions && (
                   <td className="p-3">
                     <button
-                      onClick={() => onRowClick(request.id, request.status_name)}
+                      onClick={() => onRowClick(request.request_id, request.status_name)}
                       className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg"
                     >
                       Review

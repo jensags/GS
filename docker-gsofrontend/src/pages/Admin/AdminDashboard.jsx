@@ -146,6 +146,35 @@ const AdminDashboard = () => {
         </div>
       </header>
 
+      <div
+        className={`absolute md:hidden top-20 right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl z-30 transition-all duration-300 ease-out overflow-hidden ${
+          state.isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <nav className="py-2">
+          {ADMIN_MENU_ITEMS.map((item) => (
+            <button
+              key={item.text}
+              className="flex items-center w-full px-4 py-3 text-white hover:bg-gray-800 transition-colors text-left"
+              onClick={() => {
+                dispatch({ type: "CLOSE_MOBILE_MENU" });
+                if (item.text === "Logout") {
+                  handleLogout();
+                } else {
+                  navigate(item.to);
+                }
+              }}
+            >
+              <Icon path={item.icon} className="w-5 h-5 mr-3" />
+              {item.text}
+            </button>
+          ))}
+        </nav>
+        <div className="text-center py-2 text-xs text-gray-400 border-t border-gray-700">
+          Created By Bantilan & Friends
+        </div>
+      </div>
+
       <div className="flex flex-1 overflow-hidden">
         <AdminSidebar
           isSidebarCollapsed={state.isSidebarCollapsed}

@@ -85,15 +85,8 @@ const Header = ({ isMobileMenuOpen, onToggleMobileMenu, onCloseMobileMenu, userT
   );
 };
 
-// --- Main logic ---
-const maintenanceTypeMap = {
-  1: "Janitorial",
-  2: "Carpentry",
-  3: "Electrical",
-  4: "AirConditioning",
-};
 
-const StatusTable = memo(({ requests, selectedTab, userNameParts, statuses, positions, maintenanceTypes }) => {
+const StatusTable = ({ requests, selectedTab, userNameParts }) => {
   const navigate = useNavigate();
 
   const getLinkPath = (id) => `/viewmaintenancerequestform/${id}`;
@@ -111,11 +104,6 @@ const StatusTable = memo(({ requests, selectedTab, userNameParts, statuses, posi
       .filter(Boolean)
       .join(" ");
   };
-
-  // Helper functions to map IDs to names
-  const getStatusName = (id) => statuses.find((s) => s.id === id)?.name || "Unknown";
-  const getPositionName = (id) => positions.find((p) => p.id === id)?.name || "Unknown";
-  const getMaintenanceTypeName = (id) => maintenanceTypes.find((m) => m.id === id)?.name || "Unknown";
 
   return (
     <div className="bg-white rounded-lg shadow-sm md:shadow-lg border border-gray-200">
@@ -136,19 +124,19 @@ const StatusTable = memo(({ requests, selectedTab, userNameParts, statuses, posi
         <tbody>
           {requests.length > 0 ? (
             requests.map((request) => (
-              <tr key={request.id} className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-400">
-                <td className="p-3">{formatUserName()}</td>
-                <td className="p-3">{getPositionName(request.position_id)}</td>
+              <tr key={request.request_id} className="hover:bg-gray-50 even:bg-gray-50 border-b border-gray-400">
+                <td className="p-3">{request.requesting_personnel}</td>
+                <td className="p-3">{request.position}</td>
                 <td className="p-3">{request.date_requested || "N/A"}</td>
-                <td className="p-3">{getMaintenanceTypeName(request.maintenance_type_id)}</td>
+                <td className="p-3">{request.maintenance_type}</td>
                 <td className="p-3">
                   <span className="px-3 py-1 rounded-full text-sm">
-                    {getStatusName(request.status_id)}
+                    {request.status}
                   </span>
                 </td>
                 <td className="p-3 space-x-2">
                   <button
-                    onClick={() => navigate(getLinkPath(request.id))}
+                    onClick={() => navigate(`/viewmaintenancerequestform/${request.request_id}`)}
                     className="bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition duration-200"
                   >
                     View
@@ -157,7 +145,7 @@ const StatusTable = memo(({ requests, selectedTab, userNameParts, statuses, posi
                 {selectedTab === "Approved" && (
                   <td className="p-3">
                     <button
-                      onClick={() => navigate(getFeedbackPath(request.id))}
+                      onClick={() => navigate(`/userfeedback/${request.request_id}`)}
                       className="bg-indigo-500 text-white px-4 py-1 rounded-md hover:bg-indigo-600 transition duration-200"
                     >
                       Give Feedback
@@ -177,7 +165,7 @@ const StatusTable = memo(({ requests, selectedTab, userNameParts, statuses, posi
       </table>
     </div>
   );
-});
+};
 
 const RequestStatus = () => {
   const navigate = useNavigate();
@@ -194,9 +182,6 @@ const RequestStatus = () => {
     middle_name: "",
     suffix: "",
   });
-  const [statuses, setStatuses] = useState([]);
-  const [positions, setPositions] = useState([]);
-  const [maintenanceTypes, setMaintenanceTypes] = useState([]);
   const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
 
   // Logout logic (same as Dashboard)
@@ -230,7 +215,7 @@ const RequestStatus = () => {
       }
       setLoading(true);
       try {
-        const [userRes, reqRes, statusesRes, positionsRes, maintenanceTypesRes] = await Promise.all([
+        const [userRes, reqRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/idfullname`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
@@ -239,26 +224,14 @@ const RequestStatus = () => {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${API_BASE_URL}/statuses`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/positions`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/maintenance-types`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
-        // Check for failed responses
         if (!userRes.ok) throw new Error("Failed to fetch user info");
         if (!reqRes.ok) throw new Error("Failed to fetch maintenance requests");
-        if (!statusesRes.ok) throw new Error("Failed to fetch statuses");
-        if (!positionsRes.ok) throw new Error("Failed to fetch positions");
-        if (!maintenanceTypesRes.ok) throw new Error("Failed to fetch maintenance types");
 
         const userData = await userRes.json();
-        console.log("userData raw:", userData);
         const reqData = await reqRes.json();
-        const statusesData = await statusesRes.json();
-        const positionsData = await positionsRes.json();
-        const maintenanceTypesData = await maintenanceTypesRes.json();
 
-        // Save user name parts
         setUserNameParts({
           last_name: userData.last_name || "",
           first_name: userData.first_name || "",
@@ -266,19 +239,16 @@ const RequestStatus = () => {
           suffix: userData.suffix || "",
         });
 
-        // Use user_id instead of id
         const userId = userData.user_id;
         const list = Array.isArray(reqData.data) ? reqData.data : reqData;
-        console.log("userData.user_id", userId);
-        console.log("All requests:", list);
-        console.log("Filtered requests:", list.filter((r) => String(r.requesting_personnel) === String(userId)));
         setRequests(
-          list.filter((r) => String(r.requesting_personnel) === String(userId))
+          list.filter((r) => String(r.requester_id) === String(userId))
         );
-
-        setStatuses(Array.isArray(statusesData.data) ? statusesData.data : statusesData);
-        setPositions(Array.isArray(positionsData.data) ? positionsData.data : positionsData);
-        setMaintenanceTypes(Array.isArray(maintenanceTypesData.data) ? maintenanceTypesData.data : maintenanceTypesData);
+        console.log("User ID:", userId);
+        console.log("All Requests:", list);
+        console.log("Filtered Requests:", list.filter((r) => String(r.requester_id) === String(userId)));
+        console.log("User Data:", userData);
+        console.log("Requests Data:", reqData);
       } catch (err) {
         console.error(err);
         setRequests([]);
@@ -290,7 +260,7 @@ const RequestStatus = () => {
   }, [token, navigate]);
 
   const filtered = requests.filter(
-    (r) => getStatusName(r.status_id) === selectedTab
+    (r) => r.status?.trim().toLowerCase() === selectedTab.toLowerCase()
   );
 
   if (loading) return <div className="p-4">Loading request statuses...</div>;
@@ -341,9 +311,6 @@ const RequestStatus = () => {
             requests={filtered}
             selectedTab={selectedTab}
             userNameParts={userNameParts}
-            statuses={statuses}
-            positions={positions}
-            maintenanceTypes={maintenanceTypes}
           />
         </main>
       </div>
