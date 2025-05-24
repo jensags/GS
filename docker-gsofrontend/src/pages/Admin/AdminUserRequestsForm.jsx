@@ -146,10 +146,10 @@ function AdminUserRequestsForm() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!token || !user_id) return;
-      
+
       try {
-        // Try to fetch the specific user by ID first
-        const response = await fetch(`${API_BASE_URL}/pending-approvals/${user_id}`, {
+        // Fetch all users from /users-list
+        const response = await fetch(`${API_BASE_URL}/users-list`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -157,49 +157,31 @@ function AdminUserRequestsForm() {
             "Content-Type": "application/json",
           },
         });
-        
-        // If specific user endpoint fails, fall back to getting all and filtering
-        if (!response.ok) {
-          console.log("Specific user endpoint failed, falling back to all users");
-          
-          const allUsersResponse = await fetch(`${API_BASE_URL}/pending-approvals`, {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Accept": "application/json",
-              "Content-Type": "application/json",
-            },
-          });
-          
-          const allUsersData = await allUsersResponse.json();
-          
-          // Extract users array depending on API response structure
-          const usersArray = Array.isArray(allUsersData) ? allUsersData : 
-                            Array.isArray(allUsersData.data) ? allUsersData.data : [];
-          
-          // Find the specific user in the array
-          const userFound = usersArray.find(user => user.id === parseInt(user_id) || user.id === user_id);
-          
-          if (userFound) {
-            console.log("Found user in all users:", userFound);
-            setUserData(userFound);
-          } else {
-            throw new Error("User not found");
-          }
+
+        if (!response.ok) throw new Error("Failed to fetch users list");
+
+        const allUsersData = await response.json();
+
+        // Extract users array depending on API response structure
+        const usersArray = Array.isArray(allUsersData) ? allUsersData :
+          Array.isArray(allUsersData.data) ? allUsersData.data : [];
+
+        // Find the specific user by user_id
+        const userFound = usersArray.find(
+          user => user.user_id === parseInt(user_id) || user.user_id === user_id
+        );
+
+        if (userFound) {
+          setUserData(userFound);
         } else {
-          // If specific user endpoint worked, use that data
-          const userData = await response.json();
-          console.log("Fetched specific user data:", userData);
-          setUserData(userData);
+          throw new Error("User not found");
         }
-        
-        // Update loading state for user data
-        setDataLoadingState(prev => ({...prev, userData: false}));
+
+        setDataLoadingState(prev => ({ ...prev, userData: false }));
       } catch (err) {
         console.error("Error fetching user data:", err);
         setError(err.message || "Failed to fetch user data");
-        // Even on error, mark user data as loaded to prevent infinite loading state
-        setDataLoadingState(prev => ({...prev, userData: false}));
+        setDataLoadingState(prev => ({ ...prev, userData: false }));
       }
     };
 
@@ -409,10 +391,10 @@ function AdminUserRequestsForm() {
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className={`px-4 py-2 rounded-lg font-medium text-sm
-                        ${userData.account_status === 'Approved' || userData.account_status === 2 ? 'bg-green-100 text-green-800' : 
-                          userData.account_status === 'Rejected' || userData.account_status === 'Disapproved' || userData.account_status === 3 ? 
-                          'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
-                        Current Status: {getLabelFromLookup(statuses, userData.account_status, userData.account_status || 'Pending')}
+                        ${userData.status_id === 2 ? 'bg-green-100 text-green-800' : 
+                          userData.status_id === 3 ? 'bg-red-100 text-red-800' : 
+                          'bg-amber-100 text-amber-800'}`}>
+                        Current Status: {getLabelFromLookup(statuses, userData.status_id, userData.status || 'Pending')}
                       </div>
                       
                       <div className="text-sm text-gray-500">
@@ -427,23 +409,25 @@ function AdminUserRequestsForm() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => updateAccountStatus(3)}
-                        className="flex items-center px-5 py-2.5 bg-white border-2 border-red-400 text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all duration-200 font-medium"
-                      >
-                        <Icon path="M6 18L18 6M6 6l12 12" className="w-5 h-5 mr-2" />
-                        Reject Request
-                      </button>
-                      
-                      <button
-                        onClick={() => updateAccountStatus(2)}
-                        className="flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition-all duration-200 font-medium"
-                      >
-                        <Icon path="M5 13l4 4L19 7" className="w-5 h-5 mr-2" />
-                        Approve Request
-                      </button>
-                    </div>
+                    {/* Only show buttons if status is Pending */}
+                    {(userData.status_id === 1 || userData.status === 'Pending') && (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => updateAccountStatus(3)}
+                          className="flex items-center px-5 py-2.5 bg-white border-2 border-red-400 text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all duration-200 font-medium"
+                        >
+                          <Icon path="M6 18L18 6M6 6l12 12" className="w-5 h-5 mr-2" />
+                          Reject Request
+                        </button>
+                        <button
+                          onClick={() => updateAccountStatus(2)}
+                          className="flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition-all duration-200 font-medium"
+                        >
+                          <Icon path="M5 13l4 4L19 7" className="w-5 h-5 mr-2" />
+                          Approve Request
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
