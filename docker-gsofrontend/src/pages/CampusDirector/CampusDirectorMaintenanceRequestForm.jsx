@@ -1,6 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CampusDirectorSidebar } from "../../components/CampusDirectorSidebar";
+
+const sidebarReducer = (state, action) => {
+  switch (action.type) {
+    case "TOGGLE_SIDEBAR":
+      return { ...state, isSidebarCollapsed: !state.isSidebarCollapsed };
+    default:
+      return state;
+  }
+};
 
 const CampusDirectorMaintenanceRequestForm = () => {
   const navigate = useNavigate();
@@ -39,6 +48,10 @@ const CampusDirectorMaintenanceRequestForm = () => {
   const [verifiedByName, setVerifiedByName] = useState("");
   const [maintenanceTypes, setMaintenanceTypes] = useState([]);
   const [statuses, setStatuses] = useState([]);
+
+  const [sidebarState, sidebarDispatch] = useReducer(sidebarReducer, {
+    isSidebarCollapsed: true, // Collapsed by default
+  });
 
   const fetchCurrentUser = async (authToken) => {
     try {
@@ -365,7 +378,10 @@ const CampusDirectorMaintenanceRequestForm = () => {
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <CampusDirectorSidebar />
+        <CampusDirectorSidebar
+          isSidebarCollapsed={sidebarState.isSidebarCollapsed}
+          onToggleSidebar={() => sidebarDispatch({ type: "TOGGLE_SIDEBAR" })}
+        />
         <main className="flex-1 p-6 overflow-y-auto bg-white/95 backdrop-blur-sm">
           <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8">
             <div className="bg-white p-6 md:p-8 lg:p-10 shadow-lg rounded-lg w-full max-w-md md:max-w-xl lg:max-w-2xl">

@@ -273,7 +273,7 @@ const HeadRequests = () => {
           }`}
         >
           <nav className="py-2">
-            {MENU_ITEMS.map((item) => (
+            {HEAD_MENU_ITEMS.map((item) => ( // <-- Use HEAD_MENU_ITEMS here
               <NavLink
                 key={item.text}
                 to={item.to}
